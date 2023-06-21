@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/FaceIQ/static/css/main.7d1591df.css",
+    "main.js": "/FaceIQ/static/js/main.0367a13e.js",
+    "static/js/787.d675b663.chunk.js": "/FaceIQ/static/js/787.d675b663.chunk.js",
+    "static/media/brain.png": "/FaceIQ/static/media/brain.b639461088a03ec669e3.png",
+    "index.html": "/FaceIQ/index.html",
+    "main.7d1591df.css.map": "/FaceIQ/static/css/main.7d1591df.css.map",
+    "main.0367a13e.js.map": "/FaceIQ/static/js/main.0367a13e.js.map",
+    "787.d675b663.chunk.js.map": "/FaceIQ/static/js/787.d675b663.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.7d1591df.css",
+    "static/js/main.0367a13e.js"
+  ]
+}
