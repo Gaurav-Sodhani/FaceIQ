@@ -7,61 +7,38 @@ import FaceRecognition from './Components/FaceRecognition/FaceRecognition';
 import SignIn from './Components/SignIn/SignIn';
 import Register from './Components/Register/Register';
 import ParticlesBg from 'particles-bg';
-// import Clarifai from "clarifai";
 import './App.css';
 
-// const app = new Clarifai.App({
-//   apikey: 'bcf688a7f8dd4f6eb999156a371941cf'
-// });
-
-const returnClarifaiRequestOptions = (imageURL) => {
-  const PAT = '1433431b7d0a448ca1c7adfa6592972e';
-  const USER_ID = 'ci98tvuytyae';       
-  const APP_ID = 'SmartyFace';
-  // Change these to whatever model and image URL you want to use
-  // const MODEL_ID = 'face-detection';
-  const IMAGE_URL = imageURL;
-
-  const raw = JSON.stringify({
-      "user_app_id": {
-          "user_id": USER_ID,
-          "app_id": APP_ID
-      },
-      "inputs": [
-          {
-              "data": {
-                  "image": {
-                      "url": IMAGE_URL
-                  }
-              }
-          }
-      ]
-  });
-
-  const requestOptions = {
-      method: 'POST',
-      headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Key ' + PAT
-      },
-      body: raw
-  };
-
-  return requestOptions;
-
+const initialState = {
+  input: '',
+  imageURL: '',
+  box: {},
+  route: 'signin',
+  isSignedIn: false,
+  user: {
+    id: '',
+    name: '',
+    email: '',
+    entries: 0,
+    joined: ''
+  }
 }
-
 
 class App extends React.Component {
   constructor(){
     super();
-    this.state = {
-      input: '',
-      imageURL: '',
-      box: {},
-      route: 'signin',
-      isSignedIn: false,
-    }
+    this.state = initialState;
+  }
+
+  loadUser =(data)=> {
+    this.setState({user: {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        entries: data.entries,
+        joined: data.joined
+      }
+    })
   }
 
   calculateFaceLocation =(data) => {
@@ -78,7 +55,6 @@ class App extends React.Component {
   }
 
   displayFaceBox = (box) => {
-    // console.log(box);
     this.setState({box: box});
   }
 
@@ -88,18 +64,44 @@ class App extends React.Component {
 
   onButtonSubmit = () => {
     this.setState({imageURL: this.state.input})
-    // console.log('Click');
-    fetch("https://api.clarifai.com/v2/models/" + 'face-detection' + "/outputs", returnClarifaiRequestOptions(this.state.input))
+    fetch('http://localhost:3000/imageurl',{
+      method: 'post',
+      headers: {
+          'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({
+          input: this.state.input,
+      })
+    })   
+    .then(response => response.json())
+    .then(response => {
+      if(response){
+        fetch('http://localhost:3000/image',{
+          method: 'put',
+          headers: {
+              'Content-Type': 'application/json' 
+          },
+          body: JSON.stringify({
+              id: this.state.user.id,
+          })
+        })
         .then(response => response.json())
-        .then(response => this.displayFaceBox(this.calculateFaceLocation(response)))
-        .then(result => console.log(result))
-        .catch(error => console.log('error', error));
-      
+        .then(count => {
+          this.setState(Object.assign(this.state.user, {
+            entries: count
+          }))
+        })
+        .catch(console.log);
+      }
+      this.displayFaceBox(this.calculateFaceLocation(response))
+    })
+    .then(result => console.log(result))
+    .catch(error => console.log('error', error));
   }
 
   onRouteChange =(route)=> {
     if(route === 'signin') {
-      this.setState({isSignedIn: false})
+      this.setState(initialState)
     } else if(route === 'home'){
       this.setState({isSignedIn: true})
     }
@@ -115,7 +117,7 @@ class App extends React.Component {
         {route === 'home' 
           ? <div>
             <Logo />
-            <Rank />
+            <Rank name={this.state.user.name} entries={this.state.user.entries} />
             <ImageLinkForm 
               onInputChange={this.onInputChange} 
               onButtonSubmit={this.onButtonSubmit}
@@ -127,8 +129,8 @@ class App extends React.Component {
           </div>
           : (
             route === 'signin'
-            ? <SignIn onRouteChange={this.onRouteChange}/>
-            : <Register onRouteChange={this.onRouteChange}/>
+            ? <SignIn loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
+            : <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
           ) 
         }
       </div>
